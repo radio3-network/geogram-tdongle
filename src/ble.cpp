@@ -34,6 +34,7 @@ void startBeacon(const char* beaconName, const char* deviceId, uint16_t manufact
     adv->setAdvertisementData(advData);
     adv->start();
 
+    /*
     String mac = BLEDevice::getAddress().toString().c_str();
     Serial.println("BLE MAC address: " + mac);
     screen.fillScreen(TFT_BLACK);
@@ -47,6 +48,7 @@ void startBeacon(const char* beaconName, const char* deviceId, uint16_t manufact
     screen.print("MSG:");
     screen.setCursor(10, 45);
     screen.print(payload);
+*/
 
     Serial.println("Beacon started.");
 }
@@ -56,6 +58,6 @@ void restartBeacon() {
         adv->stop();
         delay(10);
         adv->start();
-        Serial.println("Beacon restarted.");
+        //Serial.println("Beacon restarted.");
     }
 }

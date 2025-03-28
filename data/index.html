@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Geogram Config</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 2em; }
+    input, button { font-size: 1em; padding: 0.5em; width: 100%; margin: 0.5em 0; }
+    .box { background: white; padding: 1em; max-width: 400px; margin: auto; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Geogram Configuration</h2>
+    <label>Device ID</label>
+    <input type="text" id="deviceId">
+
+    <label>Payload Message</label>
+    <input type="text" id="payload">
+
+    <button onclick="save()">Save</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    async function load() {
+      const res = await fetch('/api/load');
+      const cfg = await res.json();
+      document.getElementById('deviceId').value = cfg.deviceId;
+      document.getElementById('payload').value = cfg.payload;
+    }
+
+    async function save() {
+      const data = new URLSearchParams();
+      data.append("deviceId", document.getElementById('deviceId').value);
+      data.append("payload", document.getElementById('payload').value);
+
+      const res = await fetch('/api/save', {
+        method: "POST",
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: data
+      });
+
+      if (res.ok) {
+        document.getElementById("status").innerText = "✅ Saved";
+      } else {
+        document.getElementById("status").innerText = "❌ Error saving";
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
