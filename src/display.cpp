@@ -18,14 +18,21 @@ void initDisplay() {
 
     lvgl_init();
 
-    // Apply dark theme
-    lv_theme_t* dark = lv_theme_default_init(nullptr, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_GREY), true, LV_FONT_DEFAULT);
+    // Apply dark theme with small font
+    lv_theme_t* dark = lv_theme_default_init(nullptr,
+                                             lv_palette_main(LV_PALETTE_BLUE),
+                                             lv_palette_main(LV_PALETTE_GREY),
+                                             true,
+                                             &lv_font_montserrat_10);
     lv_disp_set_theme(nullptr, dark);
 
     lv_obj_t* label = lv_label_create(lv_scr_act());
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_10, LV_PART_MAIN);
+
     lv_label_set_text(label, "geogram");
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 4, 2);
 }
+
 
 
 void updateDisplay() {
