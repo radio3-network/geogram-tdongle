@@ -12,6 +12,7 @@
 #include "ble.h"
 #include <WebServer.h>
 #include "display.h"
+#include "inspiration.h"
 
 
 extern void startWebPortal();
@@ -77,6 +78,8 @@ void setup() {
     // all done
     blinkLED();
     lastRestart = millis();
+
+    generateInspiration();
 }
 
 void loop() {
