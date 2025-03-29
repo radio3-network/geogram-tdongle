@@ -65,11 +65,6 @@ void initDisplay() {
 
     lvgl_init();
 
-    // Force black background for the root screen
-    lv_obj_clear_flag(lv_scr_act(), LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(lv_scr_act(), lv_color_black(), LV_PART_MAIN);
-
     lv_theme_t* dark = lv_theme_default_init(nullptr,
                                              lv_palette_main(LV_PALETTE_BLUE),
                                              lv_palette_main(LV_PALETTE_GREY),
@@ -116,6 +111,12 @@ void initDisplay() {
     lv_obj_set_style_border_width(log_box, 1, 0);
     lv_obj_set_style_border_color(log_box, lv_color_black(), 0);
     lv_obj_set_scrollbar_mode(log_box, LV_SCROLLBAR_MODE_OFF);
+
+    // FINAL FIX: Strip all theme styles and force black background
+    lv_obj_clear_flag(lv_scr_act(), LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style_all(lv_scr_act());
+    lv_obj_set_style_bg_color(lv_scr_act(), lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_COVER, LV_PART_MAIN);
 }
 
 void updateDisplay() {
