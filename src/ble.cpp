@@ -2,6 +2,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEAdvertising.h>
+#include <BLEScan.h>
 #include <TFT_eSPI.h>
 
 extern TFT_eSPI screen;
@@ -9,6 +10,41 @@ extern TFT_eSPI screen;
 // Persistent advertising object
 static BLEAdvertising* adv = nullptr;
 static BLEAdvertisementData advData;
+
+void scanNearbyEddystoneUIDs() {
+    BLEScan* scanner = BLEDevice::getScan();
+    scanner->setActiveScan(true);
+    scanner->setInterval(100);
+    scanner->setWindow(99);
+
+    BLEScanResults results = scanner->start(5, false); // 5 seconds scan
+    int count = results.getCount();
+
+    Serial.printf("Found %d BLE devices\n", count);
+    for (int i = 0; i < count; ++i) {
+        BLEAdvertisedDevice d = results.getDevice(i);
+        if (d.haveServiceData()) {
+            std::string data = d.getServiceData();
+            if (d.haveServiceUUID() && d.getServiceUUID().toString() == "0000feaa-0000-1000-8000-00805f9b34fb") {
+                uint8_t frameType = data[0];
+                if (frameType == 0x00 && data.length() >= 18) { // UID frame
+                    Serial.println("Eddystone UID found:");
+                    Serial.print("  Namespace ID: ");
+                    for (int j = 2; j < 12; ++j) {
+                        Serial.printf("%02X", (uint8_t)data[j]);
+                    }
+                    Serial.print("\n  Instance ID: ");
+                    for (int j = 12; j < 18; ++j) {
+                        Serial.printf("%02X", (uint8_t)data[j]);
+                    }
+                    Serial.println();
+                }
+            }
+        }
+    }
+
+    scanner->clearResults();
+}
 
 void startBeacon(const char* beaconName, const char* deviceId, uint16_t manufacturerId, const char* payload) {
     BLEDevice::init(beaconName);
@@ -34,22 +70,6 @@ void startBeacon(const char* beaconName, const char* deviceId, uint16_t manufact
     adv->setAdvertisementData(advData);
     adv->start();
 
-    /*
-    String mac = BLEDevice::getAddress().toString().c_str();
-    Serial.println("BLE MAC address: " + mac);
-    screen.fillScreen(TFT_BLACK);
-    screen.setTextColor(TFT_WHITE, TFT_BLACK);
-    screen.setTextSize(1);
-    screen.setCursor(10, 5);
-    screen.print("BLE: " + mac);
-    screen.setCursor(10, 20);
-    screen.print("ID: " + String(deviceId));
-    screen.setCursor(10, 35);
-    screen.print("MSG:");
-    screen.setCursor(10, 45);
-    screen.print(payload);
-*/
-
     Serial.println("Beacon started.");
 }
 
@@ -57,7 +77,8 @@ void restartBeacon() {
     if (adv) {
         adv->stop();
         delay(10);
+        scanNearbyEddystoneUIDs();  // Scan before restarting beacon
+        delay(10);
         adv->start();
-        //Serial.println("Beacon restarted.");
     }
 }

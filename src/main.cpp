@@ -13,7 +13,7 @@
 #include <WebServer.h>
 #include "display.h"
 #include "inspiration.h"
-
+#include "time_get.h"
 
 extern void startWebPortal();
 extern WebServer server;
@@ -48,14 +48,12 @@ void setup() {
     Serial.begin(115200);
     EEPROM.begin(1);
 
-
     // Load saved config
     Preferences prefs;
     prefs.begin("config", true);
     String id = prefs.getString("deviceId", "T-Dongle");
     String msg = prefs.getString("payload", "Hello from ESP32");
     prefs.end();
-
 
     // Initialize TFT display and LVGL
     initDisplay();
@@ -75,6 +73,9 @@ void setup() {
     // Start BLE beacon
     startBeacon("geogram T-Dongle", id.c_str(), 0x1234, msg.c_str());
 
+    // Init time
+    initTime();
+
     // all done
     blinkLED();
     lastRestart = millis();
@@ -86,6 +87,7 @@ void loop() {
     button.tick();
     server.handleClient();
     updateDisplay();  // needed for LVGL animations/input
+    updateTime(); 
     delay(5);
 
     if (millis() - lastRestart > restartInterval) {
