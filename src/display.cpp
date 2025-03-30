@@ -83,7 +83,7 @@ void initDisplay() {
     lv_label_set_text(status_label, "geogram uptime: 00:00:00");
     lv_obj_set_style_text_font(status_label, &lv_font_montserrat_10, LV_PART_MAIN);
     lv_obj_set_style_text_color(status_label, lv_color_black(), LV_PART_MAIN);
-    lv_obj_align(status_label, LV_ALIGN_LEFT_MID, 4, 0);
+    lv_obj_align(status_label, LV_ALIGN_LEFT_MID, 1, 0);
 
     const int bottom_bar_height = 14;
     lv_obj_t* bottom_bar = lv_obj_create(lv_scr_act());
@@ -112,7 +112,7 @@ void initDisplay() {
     lv_obj_set_style_border_color(log_box, lv_color_black(), 0);
     lv_obj_set_scrollbar_mode(log_box, LV_SCROLLBAR_MODE_OFF);
 
-    // FINAL FIX: Strip all theme styles and force black background
+    // Strip all theme styles and force black background
     lv_obj_clear_flag(lv_scr_act(), LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_remove_style_all(lv_scr_act());
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_black(), LV_PART_MAIN);
@@ -145,6 +145,7 @@ void updateDisplay() {
     static uint32_t last_inspiration = 0;
     if (millis() - last_inspiration > 300000) {
         last_inspiration = millis();
+        clearLog();
         generateInspiration();
     }
 
