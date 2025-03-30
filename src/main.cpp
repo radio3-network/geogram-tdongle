@@ -2,18 +2,18 @@
 #define FASTLED_ESP32_SPI
 #define FASTLED_ESP32_SPI_PINS 1
 
-#include "pin_config.h"
+#include "misc/pin_config.h"
+#include "misc/pinconfig.h"
 #include <TFT_eSPI.h>
 #include <OneButton.h>
 #include <FastLED.h>
 #include <Preferences.h>
 #include "EEPROM.h"
-#include "pinconfig.h"
-#include "ble.h"
+#include "ble/ble.h"
 #include <WebServer.h>
-#include "display.h"
-#include "inspiration.h"
-#include "time_get.h"
+#include "display/display.h"
+#include "display/inspiration.h"
+#include "wifi/time_get.h"
 
 extern void startWebPortal();
 extern WebServer server;
@@ -48,21 +48,14 @@ void setup() {
     Serial.begin(115200);
     EEPROM.begin(1);
 
-    // Load saved config
-    Preferences prefs;
-    prefs.begin("config", true);
-    String id = prefs.getString("deviceId", "T-Dongle");
-    String msg = prefs.getString("payload", "Hello from ESP32");
-    prefs.end();
-
     // Initialize TFT display and LVGL
     initDisplay();
 
     // setup the LED
-    leds = CRGB(0,0,0);
+    leds = CRGB(0, 0, 0);
     FastLED.addLeds<APA102, LED_DI_PIN, LED_CI_PIN, BGR>(&leds, 1);
     FastLED.show();
-    
+
     // setup the button
     button.attachClick(nextPosition);
     digitalWrite(TFT_LEDA_PIN, 0);
@@ -70,8 +63,17 @@ void setup() {
     // Start config portal
     startWebPortal();
 
+    // Load hotspot name and use for ID and beacon name
+    Preferences prefs;
+    prefs.begin("config", true);
+    String suffix = prefs.getString("wifi_hotspot_name", "T-Dongle");
+    prefs.end();
+    String id = suffix;
+    String beaconName = "geogram-" + suffix;
+    String msg = "";
+
     // Start BLE beacon
-    startBeacon("geogram T-Dongle", id.c_str(), 0x1234, msg.c_str());
+    startBeacon(beaconName.c_str(), id.c_str(), 0x1234, msg.c_str());
 
     // Init time
     initTime();

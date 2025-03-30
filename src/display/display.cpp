@@ -2,7 +2,7 @@
 #include <lvgl.h>
 #include <WiFi.h>
 #include "lv_driver.h"
-#include "pinconfig.h"
+#include "misc/pinconfig.h"
 #include "inspiration.h"
 
 TFT_eSPI screen = TFT_eSPI();
