@@ -160,6 +160,10 @@ void updateDisplay() {
         char buf[8];
         snprintf(buf, sizeof(buf), "x%d", count);
         lv_label_set_text(device_count_label, buf);
+    }else{
+        char buf[8];
+        snprintf(buf, sizeof(buf), "");
+        lv_label_set_text(device_count_label, buf);
     }
 
     static uint32_t last_inspiration = 0;
