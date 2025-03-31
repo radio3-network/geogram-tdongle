@@ -4,6 +4,7 @@
 #include <Preferences.h>
 #include <esp_bt_device.h>
 #include "time_get.h"
+#include "webfiles.h"
 
 WebServer server(80);
 Preferences prefs;
@@ -190,6 +191,8 @@ void startWebPortal() {
     server.on("/api/save", HTTP_POST, handleSave);
     server.on("/api/load", HTTP_GET, handleLoad);
     server.on("/api/status", HTTP_GET, handleStatus);
+    setupFileBrowserRoutes();
+
     server.onNotFound(handleFileRequest);
     server.begin();
 

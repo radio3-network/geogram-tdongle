@@ -1,6 +1,7 @@
 #include <TFT_eSPI.h>
 #include <lvgl.h>
 #include <WiFi.h>
+#include <Preferences.h>
 #include "lv_driver.h"
 #include "misc/pinconfig.h"
 #include "inspiration.h"
@@ -9,6 +10,7 @@ TFT_eSPI screen = TFT_eSPI();
 static lv_obj_t* status_label = nullptr;
 static lv_obj_t* log_box = nullptr;
 static lv_obj_t* ip_label = nullptr;
+static lv_obj_t* device_count_label = nullptr;
 static String log_lines[1000];
 static uint16_t log_index = 0;
 
@@ -93,6 +95,12 @@ void initDisplay() {
     lv_obj_clear_flag(bottom_bar, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_align(bottom_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
 
+    device_count_label = lv_label_create(bottom_bar);
+    lv_label_set_text(device_count_label, "");
+    lv_obj_set_style_text_font(device_count_label, &lv_font_montserrat_10, LV_PART_MAIN);
+    lv_obj_set_style_text_color(device_count_label, lv_color_black(), LV_PART_MAIN);
+    lv_obj_align(device_count_label, LV_ALIGN_LEFT_MID, 4, 0);
+
     ip_label = lv_label_create(bottom_bar);
     lv_label_set_text(ip_label, "IP: unknown");
     lv_obj_set_style_text_font(ip_label, &lv_font_montserrat_10, LV_PART_MAIN);
@@ -104,7 +112,7 @@ void initDisplay() {
     lv_obj_set_size(log_box, LV_HOR_RES, log_box_height);
     lv_obj_align(log_box, LV_ALIGN_TOP_LEFT, 0, 20);
     lv_textarea_set_max_length(log_box, 32767);
-    lv_textarea_set_text(log_box, "");
+    lv_textarea_set_text(log_box, "--");
     lv_obj_set_style_text_font(log_box, &lv_font_montserrat_10, LV_PART_MAIN);
     lv_obj_set_style_bg_color(log_box, lv_color_black(), 0);
     lv_obj_set_style_text_color(log_box, lv_color_white(), 0);
@@ -112,7 +120,6 @@ void initDisplay() {
     lv_obj_set_style_border_color(log_box, lv_color_black(), 0);
     lv_obj_set_scrollbar_mode(log_box, LV_SCROLLBAR_MODE_OFF);
 
-    // Strip all theme styles and force black background
     lv_obj_clear_flag(lv_scr_act(), LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_remove_style_all(lv_scr_act());
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_black(), LV_PART_MAIN);
@@ -140,6 +147,19 @@ void updateDisplay() {
                      days, (days == 1 ? "" : "s"), hours);
         }
         lv_label_set_text(status_label, buf);
+    }
+
+    Preferences prefs;
+    prefs.begin("stats", true);
+    int count = prefs.getInt("users_detected", 0);
+    prefs.end();
+
+    static int last_count = 0;
+    if (count > 0 && device_count_label) {
+        last_count = count;
+        char buf[8];
+        snprintf(buf, sizeof(buf), "x%d", count);
+        lv_label_set_text(device_count_label, buf);
     }
 
     static uint32_t last_inspiration = 0;
