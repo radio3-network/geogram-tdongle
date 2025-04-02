@@ -66,14 +66,23 @@
       gap: 2em;
       padding: 2em;
       max-width: 1200px;
-      margin: auto;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
       flex: 1;
     }
 
     .left-column {
       flex: 3;
+      min-width: 0; /* Prevent overflow */
+      width: 75%; /* Explicit 3:1 ratio */
     }
-    .right-column { flex: 1; }
+
+    .right-column {
+      flex: 1;
+      width: 25%; /* Explicit 3:1 ratio */
+      min-width: 300px; /* Prevent becoming too narrow */
+    }
 
     .banner {
       width: 100%;
@@ -87,6 +96,7 @@
     .banner img {
       max-height: 160px;
       width: auto;
+      max-width: 100%;
     }
 
     h2 {
@@ -116,6 +126,9 @@
       padding: 0.8em;
       text-align: center;
       border-radius: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .gallery-grid {
@@ -135,6 +148,7 @@
       background: var(--card);
       padding: 0.5em;
       border-radius: 6px;
+      box-sizing: border-box;
     }
 
     .blog-post {
@@ -182,9 +196,21 @@
     }
 
     @media (max-width: 768px) {
-      .main-layout { flex-direction: column; }
-      .news-card { flex: 1 1 100%; }
-      footer { text-align: center; }
+      .main-layout { 
+        flex-direction: column;
+        padding: 1em;
+      }
+      .left-column,
+      .right-column {
+        width: 100%;
+        min-width: 100%;
+      }
+      .news-card { 
+        flex: 1 1 100%; 
+      }
+      footer { 
+        text-align: center; 
+      }
     }
   </style>
 </head>
