@@ -8,15 +8,13 @@
 #include <OneButton.h>
 #include <FastLED.h>
 #include <Preferences.h>
-#include "EEPROM.h"
+#include <EEPROM.h>
 #include "ble/ble.h"
-#include <WebServer.h>
 #include "display/display.h"
 #include "display/inspiration.h"
 #include "wifi/time_get.h"
 
-extern void startWebPortal();
-extern WebServer server;
+extern void startWebPortal();  // Declare web server startup method from webportal.cpp
 
 OneButton button(BTN_PIN, true);
 CRGB leds;
@@ -37,7 +35,7 @@ void blinkLED() {
 }
 
 void setup() {
-    // necessary to keep BLE running
+    // Prevent ESP32 from entering unwanted sleep mode (important for BLE)
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
     esp_sleep_enable_timer_wakeup(0);
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
@@ -48,37 +46,30 @@ void setup() {
     Serial.begin(115200);
     EEPROM.begin(1);
 
-    // Initialize TFT display and LVGL
     initDisplay();
 
-    // setup the LED
     leds = CRGB(0, 0, 0);
     FastLED.addLeds<APA102, LED_DI_PIN, LED_CI_PIN, BGR>(&leds, 1);
     FastLED.show();
 
-    // setup the button
     button.attachClick(nextPosition);
     digitalWrite(TFT_LEDA_PIN, 0);
 
-    // Start config portal
-    startWebPortal();
+    startWebPortal();  // Launch the Wi-Fi + web portal
 
-    // Load hotspot name and use for ID and beacon name
     Preferences prefs;
     prefs.begin("config", true);
-    String suffix = prefs.getString("wifi_hotspot_name", "T-Dongle");
+    String suffix = prefs.getString("wifi_hotspot_name", "geogram");
     prefs.end();
+
     String id = suffix;
     String beaconName = "geogram-" + suffix;
     String msg = "";
 
-    // Start BLE beacon
     startBeacon(beaconName.c_str(), id.c_str(), 0x1234, msg.c_str());
 
-    // Init time
     initTime();
 
-    // all done
     blinkLED();
     lastRestart = millis();
 
@@ -87,8 +78,7 @@ void setup() {
 
 void loop() {
     button.tick();
-    server.handleClient();
-    updateDisplay();  // needed for LVGL animations/input
+    updateDisplay();
     updateTime(); 
     delay(5);
 

@@ -21,9 +21,6 @@
       color: var(--text);
       font-family: system-ui, sans-serif;
       overflow-x: hidden;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     body {
@@ -40,7 +37,7 @@
       height: 100vh;
       background: black;
     }
-
+    
     .section-link {
       display: inline-block;
       margin-bottom: 0.8em;
@@ -67,14 +64,9 @@
       padding: 2em;
       max-width: 1200px;
       margin: auto;
-      flex: 1;
     }
 
-    .left-column {
-      flex: 3;
-      min-height: 60vh;
-      min-width: fit-content;
-    }
+    .left-column { flex: 3; }
     .right-column { flex: 1; }
 
     .banner {
@@ -192,28 +184,110 @@
 </head>
 <body>
 <canvas id="wave-bg"></canvas>
+
 <div class="topbar">
-  <a href="/login">Login</a>&nbsp;|&nbsp;<a href="/register">Register</a>
+  <a href="/login">Login</a>&nbsp; |&nbsp;<a href="/register">Register</a>
 </div>
+
 <div class="main-layout">
-  <div class="left-column" id="left-column"></div>
-  <div class="right-column" id="right-column"></div>
+  <div class="left-column">
+    <div class="banner">
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDYwMCAxNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjYwMCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiMwMGYwMDAiLz48dGV4dCB4PSIzMCIgeT0iODAiIGZvbnQtc2l6ZT0iMjRweCIgZmlsbD0iI2ZmZiI+T2ZmR3JpZCBEZXZpY2U8L3RleHQ+PC9zdmc+" alt="Banner" />
+    </div>
+
+    <h2>Welcome to Our Project</h2>
+    <p>Exploring the frontier of embedded connectivity and UI on ESP32.</p>
+
+    <h2>News</h2>
+    <a class="section-link" href="/news/">Read all news →</a>
+    <div class="news-grid">
+      <div class="news-card news-danger">
+        <small>2025-03-10</small>
+        <strong>System Overheating</strong>
+        <p>Temperature exceeded safety limits. Immediate attention required.</p>
+      </div>
+      <div class="news-card news-routine">
+        <small>2025-03-28</small>
+        <strong>Firmware v2 Released</strong>
+        <p>Routine update with minor improvements and stability fixes.</p>
+      </div>
+    </div>
+    
+
+    <h2>Gallery</h2>
+    <a class="section-link" href="/gallery/">Visit the gallery →</a>
+    <div class="gallery-grid">
+      <div><a href="/images/DSC19023.jpg"><img src="/images/thumbs/DSC19023_thumb.jpg" alt="Gallery 1"/></a></div>
+      <div><a href="/images/DSC19024.jpg"><img src="/images/thumbs/DSC19024_thumb.jpg" alt="Gallery 2"/></a></div>
+      <div><a href="/images/DSC19025.jpg"><img src="/images/thumbs/DSC19025_thumb.jpg" alt="Gallery 3"/></a></div>
+    </div>
+
+    <h2>Blog</h2>
+    <a class="section-link" href="/blog/">Visit the blog →</a>
+    <div class="blog-post" onclick="location.href='/blog/offline-first.html'">
+      <strong>ESP32 Goes Offline-First</strong><br/>
+      <small>2025-03-20</small>
+      <p>Building offline-first apps using embedded storage.</p>
+    </div>
+    <div class="blog-post" onclick="location.href='/blog/ui-tiny-screens.html'">
+      <strong>Bringing UI to Tiny Screens</strong><br/>
+      <small>2025-03-10</small>
+      <p>Designing elegant UIs for embedded devices.</p>
+    </div>
+    <div class="blog-post" onclick="location.href='/blog/esp-now-messaging.html'">
+      <strong>ESP-NOW Messaging: A New Era</strong><br/>
+      <small>2025-02-28</small>
+      <p>Power-efficient microcontroller communication.</p>
+    </div>
+  </div>
+
+  <div class="right-column">
+    <h2>Apps</h2>
+    <div class="apps-grid">
+      <a href="/app/chat/">Chat</a>
+      <a href="/app/messages/">Messages</a>
+      <a href="/app/presence/">Presence</a>
+    </div>
+
+    <h2>Links</h2>
+    <div class="link-grid">
+      <a href="/contacts/">Contacts</a>
+      <a href="/blog/">Blog</a>
+      <a href="/downloads/">Downloads</a>
+    </div>
+
+    <h2>Status</h2>
+    <div class="status-box">
+      <p><strong>Uptime:</strong> 3 days, 4 hours</p>
+      <p><strong>Storage:</strong> 12.5 MB used / 32 MB total</p>
+      <p><strong>Media Count:</strong> 42</p>
+      <p><strong>Message Count:</strong> 318</p>
+    </div>
+  </div>
 </div>
-<footer id="footer"></footer>
+
+<footer>
+  <div>© 2025 OffGrid</div>
+</footer>
+
 <script>
   const canvas = document.getElementById('wave-bg');
   const ctx = canvas.getContext('2d');
-  let width, height, t = 0;
+  let width, height;
+  let t = 0;
+
   function resize() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
   }
+
   window.addEventListener('resize', () => {
     resize();
     wavesTop = createWaves(3, height / 3);
     wavesBottom = createWaves(3, (2 * height) / 3);
   });
   resize();
+
   function createWaves(count, centerY) {
     return Array.from({ length: count }, () => ({
       centerY,
@@ -224,147 +298,39 @@
       color: "rgba(0,255,0,0.15)"
     }));
   }
+
   let wavesTop = createWaves(3, height / 3);
   let wavesBottom = createWaves(3, (2 * height) / 3);
+
   function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
+
     const pulse = Math.sin(t * 0.005) * 0.5 + 1;
+
     for (const wave of [...wavesTop, ...wavesBottom]) {
       ctx.beginPath();
       const amp = wave.baseAmp * pulse;
       const speed = wave.baseSpeed * pulse;
+
       for (let x = 0; x < width; x++) {
         const y = wave.centerY + Math.sin((x + wave.offset + t * speed) * wave.freq * 2 * Math.PI) * amp;
         ctx.lineTo(x, y);
       }
+
       ctx.strokeStyle = wave.color;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
+
     t += 1;
     requestAnimationFrame(draw);
   }
+
   draw();
 </script>
-<script>
-  async function loadHomepage() {
-    try {
-      const res = await fetch('/api/homepage');
-      const data = await res.json();
-      const left = document.getElementById('left-column');
-      const right = document.getElementById('right-column');
 
-      if (data.intro) {
-        const img = new Image();
-        img.onload = () => {
-          const banner = document.createElement('div');
-          banner.className = 'banner';
-          img.alt = "Banner";
-          banner.appendChild(img);
-          left.appendChild(banner);
-        };
-        img.onerror = () => {};
-        if (data.intro.intro_banner) {
-          img.src = data.intro.intro_banner;
-        }
-        if (data.intro.intro_title) {
-          left.innerHTML += `<h2>${data.intro.intro_title}</h2>`;
-        }
-        if (data.intro.intro_description) {
-          left.innerHTML += `<p>${data.intro.intro_description}</p>`;
-        }
-      }
 
-      if (data.news && data.news.length) {
-        const newsActive = data.news.filter(n => n.status !== 'inactive');
-        if (newsActive.length) {
-          let html = `<h2>News</h2><div class="news-grid">`;
-          for (const n of newsActive) {
-            html += `
-              <div class="news-card news-${n.level}">
-                <small>${n.date}</small>
-                <strong>${n.title}</strong>
-                <p>${n.excerpt}</p>
-              </div>`;
-          }
-          html += `</div><a class="section-link" href="/news/">Read all news →</a>`;
-          left.innerHTML += html;
-        }
-      }
-
-      if (data.gallery && data.gallery.length) {
-        let html = `<h2>Gallery</h2><a class="section-link" href="/gallery/">Visit the gallery →</a><div class="gallery-grid">`;
-        for (const g of data.gallery) {
-          html += `<div><a href="${g.full}"><img src="${g.thumb}" alt="Gallery"/></a></div>`;
-        }
-        html += `</div>`;
-        left.innerHTML += html;
-      }
-
-      if (data.blog && data.blog.length) {
-        let html = `<h2>Blog</h2><a class="section-link" href="/blog/">Visit the blog →</a>`;
-        for (const b of data.blog) {
-          html += `
-            <div class="blog-post" onclick="location.href='${b.url}'">
-              <strong>${b.title}</strong><br/>
-              <small>${b.date}</small>
-              <p>${b.excerpt}</p>
-            </div>`;
-        }
-        left.innerHTML += html;
-      }
-
-      if (data.apps && data.apps.length) {
-        let html = `<h2>Apps</h2><div class="apps-grid">`;
-        for (const app of data.apps) {
-          html += `<a href="${app.url}">${app.title}</a>`;
-        }
-        html += `</div>`;
-        right.innerHTML += html;
-      }
-
-      if (data.intro && data.intro.links && data.intro.links.length) {
-        let html = `<h2>Links</h2><div class="link-grid">`;
-        for (const link of data.intro.links) {
-          html += `<a href="${link.url}">${link.title}</a>`;
-        }
-        html += `</div>`;
-        right.innerHTML += html;
-      }
-
-      if (data.status) {
-        const s = data.status;
-        let html = `<h2>Status</h2><div class="status-box">`;
-        html += `<p><strong>Uptime:</strong> ${s.uptime}</p>`;
-        html += `<p><strong>Storage:</strong> ${s.storage}</p>`;
-        html += `<p><strong>Media Count:</strong> ${s.media_count}</p>`;
-        html += `<p><strong>Message Count:</strong> ${s.message_count}</p>`;
-        html += `</div>`;
-        right.innerHTML += html;
-      }
-
-      if (data.footer && data.footer.footer_copyright) {
-        const footer = document.getElementById('footer');
-        footer.innerHTML = `<div>${data.footer.footer_copyright}</div>`;
-        footer.style.display = "block";
-      }
-
-      if (data.customization) {
-        const c = data.customization;
-        const r = document.documentElement.style;
-        r.setProperty('--bg', c.custom_bg || '#0e1b0e');
-        r.setProperty('--text', c.custom_text || '#cfeac8');
-        r.setProperty('--accent', c.custom_accent || '#a9dc9c');
-        r.setProperty('--link', c.custom_link || '#b1e4b3');
-        r.setProperty('--card', c.custom_card || '#1b2e1b');
-        r.setProperty('--border', c.custom_border || '#406343');
-      }
-    } catch (err) {
-      console.error('Failed to load homepage JSON:', err);
-    }
-  }
-  loadHomepage();
-</script>
 </body>
 </html>
+

@@ -21,9 +21,6 @@
       color: var(--text);
       font-family: system-ui, sans-serif;
       overflow-x: hidden;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     body {
@@ -67,14 +64,9 @@
       padding: 2em;
       max-width: 1200px;
       margin: auto;
-      flex: 1;
     }
 
-    .left-column {
-      flex: 3;
-      min-height: 60vh;
-      min-width: fit-content;
-    }
+    .left-column { flex: 3; }
     .right-column { flex: 1; }
 
     .banner {
@@ -192,28 +184,36 @@
 </head>
 <body>
 <canvas id="wave-bg"></canvas>
+
 <div class="topbar">
   <a href="/login">Login</a>&nbsp;|&nbsp;<a href="/register">Register</a>
 </div>
+
 <div class="main-layout">
   <div class="left-column" id="left-column"></div>
   <div class="right-column" id="right-column"></div>
 </div>
-<footer id="footer"></footer>
+
+<footer id="footer" style="display: none;"></footer>
+
 <script>
   const canvas = document.getElementById('wave-bg');
   const ctx = canvas.getContext('2d');
-  let width, height, t = 0;
+  let width, height;
+  let t = 0;
+
   function resize() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
   }
+
   window.addEventListener('resize', () => {
     resize();
     wavesTop = createWaves(3, height / 3);
     wavesBottom = createWaves(3, (2 * height) / 3);
   });
   resize();
+
   function createWaves(count, centerY) {
     return Array.from({ length: count }, () => ({
       centerY,
@@ -224,29 +224,38 @@
       color: "rgba(0,255,0,0.15)"
     }));
   }
+
   let wavesTop = createWaves(3, height / 3);
   let wavesBottom = createWaves(3, (2 * height) / 3);
+
   function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
+
     const pulse = Math.sin(t * 0.005) * 0.5 + 1;
+
     for (const wave of [...wavesTop, ...wavesBottom]) {
       ctx.beginPath();
       const amp = wave.baseAmp * pulse;
       const speed = wave.baseSpeed * pulse;
+
       for (let x = 0; x < width; x++) {
         const y = wave.centerY + Math.sin((x + wave.offset + t * speed) * wave.freq * 2 * Math.PI) * amp;
         ctx.lineTo(x, y);
       }
+
       ctx.strokeStyle = wave.color;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
+
     t += 1;
     requestAnimationFrame(draw);
   }
+
   draw();
 </script>
+
 <script>
   async function loadHomepage() {
     try {
@@ -256,23 +265,14 @@
       const right = document.getElementById('right-column');
 
       if (data.intro) {
-        const img = new Image();
-        img.onload = () => {
-          const banner = document.createElement('div');
-          banner.className = 'banner';
-          img.alt = "Banner";
-          banner.appendChild(img);
-          left.appendChild(banner);
-        };
-        img.onerror = () => {};
-        if (data.intro.intro_banner) {
-          img.src = data.intro.intro_banner;
+        if (data.intro.banner) {
+          left.innerHTML += `<div class="banner"><img src="${data.intro.banner}" alt="Banner" /></div>`;
         }
-        if (data.intro.intro_title) {
-          left.innerHTML += `<h2>${data.intro.intro_title}</h2>`;
+        if (data.intro.title) {
+          left.innerHTML += `<h2>${data.intro.title}</h2>`;
         }
-        if (data.intro.intro_description) {
-          left.innerHTML += `<p>${data.intro.intro_description}</p>`;
+        if (data.intro.description) {
+          left.innerHTML += `<p>${data.intro.description}</p>`;
         }
       }
 
@@ -344,27 +344,30 @@
         right.innerHTML += html;
       }
 
-      if (data.footer && data.footer.footer_copyright) {
+      if (data.footer && data.footer.copyright) {
         const footer = document.getElementById('footer');
-        footer.innerHTML = `<div>${data.footer.footer_copyright}</div>`;
+        footer.innerHTML = `<div>${data.footer.copyright}</div>`;
         footer.style.display = "block";
       }
 
       if (data.customization) {
         const c = data.customization;
         const r = document.documentElement.style;
-        r.setProperty('--bg', c.custom_bg || '#0e1b0e');
-        r.setProperty('--text', c.custom_text || '#cfeac8');
-        r.setProperty('--accent', c.custom_accent || '#a9dc9c');
-        r.setProperty('--link', c.custom_link || '#b1e4b3');
-        r.setProperty('--card', c.custom_card || '#1b2e1b');
-        r.setProperty('--border', c.custom_border || '#406343');
+        r.setProperty('--bg', c.background_color || '#0e1b0e');
+        r.setProperty('--text', c.text_color || '#cfeac8');
+        r.setProperty('--accent', c.accent_color || '#a9dc9c');
+        r.setProperty('--link', c.link_color || '#b1e4b3');
+        r.setProperty('--card', c.card_color || '#1b2e1b');
+        r.setProperty('--border', c.border_color || '#406343');
       }
+
     } catch (err) {
       console.error('Failed to load homepage JSON:', err);
     }
   }
+
   loadHomepage();
 </script>
 </body>
 </html>
+
