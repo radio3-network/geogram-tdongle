@@ -72,8 +72,6 @@
 
     .left-column {
       flex: 3;
-      min-height: 60vh;
-      min-width: fit-content;
     }
     .right-column { flex: 1; }
 
@@ -248,6 +246,33 @@
   draw();
 </script>
 <script>
+  async function loadStatusSection() {
+    try {
+      const res = await fetch('/api/status');
+      const s = await res.json();
+      const right = document.getElementById('right-column');
+
+      let box = document.getElementById('status-box');
+      if (!box) {
+        let html = `<h2>Status</h2><div class="status-box" id="status-box"></div>`;
+        right.innerHTML += html;
+        box = document.getElementById('status-box');
+      }
+
+      let html = '';
+      if (s.uptime) html += `<p><strong>Uptime:</strong> ${s.uptime}</p>`;
+      if (s.storage) html += `<p><strong>Storage:</strong> ${s.storage}</p>`;
+      if (s.media_count) html += `<p><strong>Media Count:</strong> ${s.media_count}</p>`;
+      if (s.message_count) html += `<p><strong>Message Count:</strong> ${s.message_count}</p>`;
+      if (s.wifi_mac) html += `<p><strong>Wi-Fi MAC:</strong> ${s.wifi_mac}</p>`;
+      if (s.bt_mac) html += `<p><strong>Bluetooth MAC:</strong> ${s.bt_mac}</p>`;
+
+      box.innerHTML = html;
+    } catch (err) {
+      console.error('Failed to load status:', err);
+    }
+  }
+
   async function loadHomepage() {
     try {
       const res = await fetch('/api/homepage');
@@ -333,17 +358,6 @@
         right.innerHTML += html;
       }
 
-      if (data.status) {
-        const s = data.status;
-        let html = `<h2>Status</h2><div class="status-box">`;
-        html += `<p><strong>Uptime:</strong> ${s.uptime}</p>`;
-        html += `<p><strong>Storage:</strong> ${s.storage}</p>`;
-        html += `<p><strong>Media Count:</strong> ${s.media_count}</p>`;
-        html += `<p><strong>Message Count:</strong> ${s.message_count}</p>`;
-        html += `</div>`;
-        right.innerHTML += html;
-      }
-
       if (data.footer && data.footer.footer_copyright) {
         const footer = document.getElementById('footer');
         footer.innerHTML = `<div>${data.footer.footer_copyright}</div>`;
@@ -360,6 +374,10 @@
         r.setProperty('--card', c.custom_card || '#1b2e1b');
         r.setProperty('--border', c.custom_border || '#406343');
       }
+
+      loadStatusSection();
+      setInterval(loadStatusSection, 30000);
+
     } catch (err) {
       console.error('Failed to load homepage JSON:', err);
     }

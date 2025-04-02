@@ -2,6 +2,7 @@
 
 std::vector<std::pair<String, String>> handleRequestConfig(const String& path, const std::vector<std::pair<String, String>>& params);
 std::vector<std::pair<String, String>> handleRequestHomepage(const String& path, const std::vector<std::pair<String, String>>& params);
+std::vector<std::pair<String, String>> handleRequestStatus(const String& path, const std::vector<std::pair<String, String>>& params);
 
 std::vector<std::pair<String, String>> handleRequest(const String& path, const std::vector<std::pair<String, String>>& params) {
     if (path.startsWith("/config")) {
@@ -9,6 +10,10 @@ std::vector<std::pair<String, String>> handleRequest(const String& path, const s
     }
     if (path.startsWith("/homepage")) {
         return handleRequestHomepage(path, params);
+    }
+
+    if (path.startsWith("/status")) {
+        return handleRequestStatus(path, params);
     }
 
     return { { "error", "Unknown endpoint" } };

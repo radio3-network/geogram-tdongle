@@ -50,34 +50,59 @@
  /**
   * @brief Handles uptime status response as JSON at /api/status
   */
- void setupStatusHandler() {
-     server.on("/api/status", HTTP_GET, [](AsyncWebServerRequest* request) {
-         unsigned long secs = millis() / 1000;
-         unsigned long mins = secs / 60;
-         unsigned long hrs = mins / 60;
-         secs %= 60;
-         mins %= 60;
- 
-         char uptime[32];
-         snprintf(uptime, sizeof(uptime), "%lu:%02lu:%02lu", hrs, mins, secs);
- 
-         String wifiMac = WiFi.softAPmacAddress();
- 
-         const uint8_t* btMacRaw = esp_bt_dev_get_address();
-         char btMac[18];
-         snprintf(btMac, sizeof(btMac), "%02X:%02X:%02X:%02X:%02X:%02X",
-                  btMacRaw[0], btMacRaw[1], btMacRaw[2],
-                  btMacRaw[3], btMacRaw[4], btMacRaw[5]);
- 
-         String json = "{";
-         json += "\"uptime\":\"" + String(uptime) + "\",";
-         json += "\"wifi_mac\":\"" + wifiMac + "\",";
-         json += "\"bt_mac\":\"" + String(btMac) + "\"";
-         json += "}";
- 
-         request->send(200, "application/json", json);
-     });
- }
+/**
+ * @brief Handles uptime status response as JSON at /api/status
+ */
+void setupStatusHandler() {
+    server.on("/api/status", HTTP_GET, [](AsyncWebServerRequest* request) {
+        // Get status data from the API handler
+        auto pairs = handleRequest("/status/get", {});
+        
+        // Convert to JSON format
+        String jsonResponse = "{";
+        bool first = true;
+        
+        for (const auto& pair : pairs) {
+            if (!first) {
+                jsonResponse += ",";
+            }
+            first = false;
+            
+            // Properly escape string values
+            if (pair.first == "error" || pair.first == "status") {
+                jsonResponse += "\"" + pair.first + "\":\"" + pair.second + "\"";
+            } else {
+                // For numeric values or special cases
+                if (pair.second.length() == 0) {
+                    // Empty fields should be null
+                    jsonResponse += "\"" + pair.first + "\":null";
+                } else if (pair.first == "uptime" || pair.first == "storage") {
+                    // String values that aren't strictly numeric
+                    jsonResponse += "\"" + pair.first + "\":\"" + pair.second + "\"";
+                } else {
+                    // Try to parse as number if possible
+                    bool isNumeric = true;
+                    for (unsigned int i = 0; i < pair.second.length(); i++) {
+                        if (!isdigit(pair.second[i])) {
+                            isNumeric = false;
+                            break;
+                        }
+                    }
+                    
+                    if (isNumeric) {
+                        jsonResponse += "\"" + pair.first + "\":" + pair.second;
+                    } else {
+                        jsonResponse += "\"" + pair.first + "\":\"" + pair.second + "\"";
+                    }
+                }
+            }
+        }
+        jsonResponse += "}";
+        
+        // Send the response
+        request->send(200, "application/json", jsonResponse);
+    });
+}
  
  /**
   * @brief Handles homepage API response at /api/homepage
@@ -141,7 +166,7 @@
      setupCaptivePortalRoutes();
      setupStaticFileHandler();
      setupStatusHandler();
-     setupHomepageHandler();  // NEW
+     setupHomepageHandler();
  
      server.begin();
  
