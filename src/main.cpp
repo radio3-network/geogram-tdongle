@@ -13,8 +13,9 @@
 #include "display/display.h"
 #include "display/inspiration.h"
 #include "wifi/time_get.h"
+#include "drive/disk.h"
 
-extern void startWebPortal();  // Declare web server startup method from webportal.cpp
+extern void startWebPortal();
 
 OneButton button(BTN_PIN, true);
 CRGB leds;
@@ -35,7 +36,6 @@ void blinkLED() {
 }
 
 void setup() {
-    // Prevent ESP32 from entering unwanted sleep mode (important for BLE)
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
     esp_sleep_enable_timer_wakeup(0);
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
@@ -55,7 +55,17 @@ void setup() {
     button.attachClick(nextPosition);
     digitalWrite(TFT_LEDA_PIN, 0);
 
-    startWebPortal();  // Launch the Wi-Fi + web portal
+    // Mount SD card
+    /*if (!Drive::begin()) {
+        Serial.println("SD card init failed!");
+    } else {
+        Serial.println("SD card initialized.");
+    }*/
+
+    setupDisk();
+
+
+    startWebPortal();
 
     Preferences prefs;
     prefs.begin("config", true);

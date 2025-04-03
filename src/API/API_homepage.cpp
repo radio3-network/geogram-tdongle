@@ -4,13 +4,13 @@
 // === Field declarations (key, description, default) ===
 static const std::vector<std::tuple<String, String, String>> introFields = {
     { "intro_logo", "Logo image path", "/images/logo.png" },
-    { "intro_banner", "Banner image path", "/images/banner.jpg" },
+    { "intro_banner", "Banner image path", "/images/banner.png" },
     { "intro_title", "Intro title text", "Welcome!" },
-    { "intro_description", "Intro description text", "This geogram is running on ESP32." }
+    { "intro_description", "Intro description text", "This server is running on ESP32." }
 };
 
 static const std::vector<std::tuple<String, String, String>> footerFields = {
-    { "footer_copyright", "Footer copyright text", "© 2025 geogram" }
+    { "footer_copyright", "Footer copyright text", "(c) 2025 <a href=\"https://ecogram.app\">ecogram</a>" }
 };
 
 static const std::vector<std::tuple<String, String, String>> customizationFields = {
@@ -78,7 +78,7 @@ static String buildIntroLinks(Preferences& prefs) {
 
 static String buildIntroJson(Preferences& prefs) {
     String title = prefs.getString("intro_title", "Welcome!");
-    String description = prefs.getString("intro_description", "This geogram is running on ESP32.");
+    String description = prefs.getString("intro_description", "This server is running on ESP32.");
     if (title == "" && description == "") return "";
     String base = buildFlatSection(prefs, "intro", introFields);
     int end = base.lastIndexOf('}');
