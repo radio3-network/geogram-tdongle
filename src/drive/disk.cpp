@@ -1,5 +1,5 @@
-#pragma once
-
+//#pragma once
+/*
 #include "pin_config.h"
 
 #include "USB.h"
@@ -153,3 +153,5 @@ void setupDisk(){
   USBSerial.begin();
   USB.begin();
 }
+
+*/

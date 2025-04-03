@@ -4,4 +4,4 @@
 #include <USBMSC.h>
 
 // Declare the setupDisk function
-void setupDisk();
+//void setupDisk();

@@ -1,17 +1,18 @@
 /**
  * @file webportal.cpp
- * @brief Async web portal implementation using ESPAsyncWebServer and LittleFS
+ * @brief Async web portal implementation using ESPAsyncWebServer and StorageManager
  */
 
  #include <WiFi.h>
- #include <LittleFS.h>
  #include <Preferences.h>
  #include <AsyncTCP.h>
  #include <ESPAsyncWebServer.h>
  #include "time_get.h"
  #include <esp_bt_device.h>
  #include "../API/API.h"
+ #include "drive/storage.h"
  
+ extern StorageManager storage;
  static AsyncWebServer server(80);
  
  /**
@@ -49,28 +50,29 @@
  }
  
  /**
-  * @brief Serves static files from LittleFS with proper MIME types
+  * @brief Serves static files from active FS with proper MIME types
   */
  void setupStaticFileHandler() {
-     // Serve static files with proper MIME types
-     server.serveStatic("/", LittleFS, "/")
+     fs::FS& fs = storage.getActiveFS();
+ 
+     // Serve static files from the active FS
+     server.serveStatic("/", fs, "/")
          .setDefaultFile("index.html")
          .setCacheControl("max-age=600");
  
      // Custom handler for missing files
-     server.onNotFound([](AsyncWebServerRequest* request) {
-         // Handle Apple captive portal
-         if(request->host() == "captive.apple.com") {
+     server.onNotFound([&fs](AsyncWebServerRequest* request) {
+         if (request->host() == "captive.apple.com") {
              request->redirect("http://192.168.4.1");
              return;
          }
-         
+ 
          String path = request->url();
-         if(path.endsWith("/")) path += "index.html";
-         
-         if(LittleFS.exists(path)) {
+         if (path.endsWith("/")) path += "index.html";
+ 
+         if (fs.exists(path)) {
              String contentType = getContentType(path);
-             request->send(LittleFS, path, contentType);
+             request->send(fs, path, contentType);
          } else {
              request->send(404, "text/plain", "File Not Found");
          }
@@ -83,14 +85,14 @@
  void setupStatusHandler() {
      server.on("/api/status", HTTP_GET, [](AsyncWebServerRequest* request) {
          auto pairs = handleRequest("/status/get", {});
-         
+ 
          String jsonResponse = "{";
          bool first = true;
-         
+ 
          for(const auto& pair : pairs) {
              if(!first) jsonResponse += ",";
              first = false;
-             
+ 
              if(pair.first == "error" || pair.first == "status") {
                  jsonResponse += "\"" + pair.first + "\":\"" + pair.second + "\"";
              } else {
@@ -106,12 +108,13 @@
                              break;
                          }
                      }
-                     jsonResponse += isNumeric ? 
+                     jsonResponse += isNumeric ?
                          "\"" + pair.first + "\":" + pair.second :
                          "\"" + pair.first + "\":\"" + pair.second + "\"";
                  }
              }
          }
+ 
          jsonResponse += "}";
          request->send(200, "application/json", jsonResponse);
      });
@@ -137,8 +140,8 @@
   * @brief Starts the web portal, initializes FS, Wi-Fi, and Async server.
   */
  void startWebPortal() {
-     if(!LittleFS.begin()) {
-         Serial.println("LittleFS mount failed");
+     if (!storage.begin()) {
+         Serial.println("Storage init failed.");
          return;
      }
  
@@ -149,24 +152,24 @@
      String wifi_password = prefs.getString("wifi_password", "");
      prefs.end();
  
-     String hotspotSSID = (suffix.length() > 0) ? ("geogram-" + suffix) : "geogram";
+     String hotspotSSID = (suffix.length() > 0) ? ("ecogram-" + suffix) : "ecogram";
  
      // Start Access Point
      WiFi.mode(WIFI_AP_STA);
      WiFi.softAP(hotspotSSID.c_str(), "");
  
-     // Attempt STA Wi-Fi connection if credentials are saved
-     if(wifi_ssid.length() > 0) {
+     // Attempt STA Wi-Fi connection
+     if (wifi_ssid.length() > 0) {
          Serial.print("Connecting to Wi-Fi: ");
          Serial.println(wifi_ssid);
          WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
  
          unsigned long start = millis();
-         while(WiFi.status() != WL_CONNECTED && millis() - start < 5000) {
+         while (WiFi.status() != WL_CONNECTED && millis() - start < 5000) {
              delay(100);
          }
  
-         if(WiFi.status() == WL_CONNECTED) {
+         if (WiFi.status() == WL_CONNECTED) {
              Serial.print("Connected, IP: ");
              Serial.println(WiFi.localIP());
              updateTime();
@@ -184,3 +187,4 @@
      server.begin();
      Serial.println("Async Web portal active at: http://192.168.4.1");
  }
+ 

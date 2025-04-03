@@ -4,10 +4,12 @@
  */
 
  #include <Arduino.h>
- #include <LittleFS.h>
  #include <ArduinoJson.h>
  #include <map>
  #include <memory>
+ #include "drive/storage.h"
+ 
+ extern StorageManager storage;
  
  static const int bitmapSize = 1440; // 24 hours * 60 minutes
  static const int maxInactivityMin = 2;
@@ -45,12 +47,13 @@
      state.lastSeen = timestamp;
  
      String path = getMonthFilePath(deviceId, year, month);
+     fs::FS& fs = storage.getActiveFS();
  
      std::unique_ptr<StaticJsonDocument<32 * 1024>> doc(new StaticJsonDocument<32 * 1024>);
  
-     if (LittleFS.exists(path)) {
+     if (fs.exists(path)) {
          Serial.printf("[presence] Reading file %s\n", path.c_str());
-         File f = LittleFS.open(path, "r");
+         File f = fs.open(path, "r");
          DeserializationError err = deserializeJson(*doc, f);
          f.close();
          if (err) {
@@ -78,11 +81,11 @@
      (*doc)[dayStr] = bitmap;
  
      String folder = "/" + deviceId + "/presence/" + String(year);
-     LittleFS.mkdir("/" + deviceId);
-     LittleFS.mkdir("/" + deviceId + "/presence");
-     LittleFS.mkdir(folder);
+     fs.mkdir("/" + deviceId);
+     fs.mkdir("/" + deviceId + "/presence");
+     fs.mkdir(folder);
  
-     File out = LittleFS.open(path, "w");
+     File out = fs.open(path, "w");
      if (serializeJson(*doc, out)) {
          Serial.printf("[presence] Updated %s\n", path.c_str());
      } else {
@@ -96,15 +99,17 @@
      struct tm tmEnd = *localtime(&end);
      int total = 0;
  
+     fs::FS& fs = storage.getActiveFS();
+ 
      for (int y = tmStart.tm_year + 1900; y <= tmEnd.tm_year + 1900; ++y) {
          int mStart = (y == tmStart.tm_year + 1900) ? tmStart.tm_mon + 1 : 1;
          int mEnd = (y == tmEnd.tm_year + 1900) ? tmEnd.tm_mon + 1 : 12;
  
          for (int m = mStart; m <= mEnd; ++m) {
              String path = getMonthFilePath(deviceId, y, m);
-             if (!LittleFS.exists(path)) continue;
+             if (!fs.exists(path)) continue;
  
-             File f = LittleFS.open(path, "r");
+             File f = fs.open(path, "r");
              std::unique_ptr<StaticJsonDocument<32 * 1024>> doc(new StaticJsonDocument<32 * 1024>);
              DeserializationError err = deserializeJson(*doc, f);
              f.close();

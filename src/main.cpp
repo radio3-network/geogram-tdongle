@@ -13,9 +13,12 @@
 #include "display/display.h"
 #include "display/inspiration.h"
 #include "wifi/time_get.h"
-#include "drive/disk.h"
+#include "drive/storage.h"
+
 
 extern void startWebPortal();
+StorageManager storage;
+
 
 OneButton button(BTN_PIN, true);
 CRGB leds;
@@ -46,6 +49,7 @@ void setup() {
     Serial.begin(115200);
     EEPROM.begin(1);
 
+
     initDisplay();
 
     leds = CRGB(0, 0, 0);
@@ -55,25 +59,25 @@ void setup() {
     button.attachClick(nextPosition);
     digitalWrite(TFT_LEDA_PIN, 0);
 
-    // Mount SD card
-    /*if (!Drive::begin()) {
-        Serial.println("SD card init failed!");
-    } else {
-        Serial.println("SD card initialized.");
-    }*/
-
-    setupDisk();
+    // Mount the SD card
+    //setupDisk();
+    if (storage.begin()) {
+        Serial.println("Storage ready.");
+        storage.listDir("/", 2);  // Optional: show root directory
+      } else {
+        Serial.println("Storage initialization failed.");
+      }
 
 
     startWebPortal();
 
     Preferences prefs;
     prefs.begin("config", true);
-    String suffix = prefs.getString("wifi_hotspot_name", "geogram");
+    String suffix = prefs.getString("wifi_hotspot_name", "ecogram");
     prefs.end();
 
     String id = suffix;
-    String beaconName = "geogram-" + suffix;
+    String beaconName = "ecogram-" + suffix;
     String msg = "";
 
     startBeacon(beaconName.c_str(), id.c_str(), 0x1234, msg.c_str());
