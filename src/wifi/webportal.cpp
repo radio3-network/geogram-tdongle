@@ -50,18 +50,12 @@
  }
  
  /**
-  * @brief Serves static files from active FS with proper MIME types
+  * @brief Serves static files dynamically from the currently active filesystem
   */
  void setupStaticFileHandler() {
-     fs::FS& fs = storage.getActiveFS();
+     server.onNotFound([](AsyncWebServerRequest* request) {
+         fs::FS& fs = storage.getActiveFS();
  
-     // Serve static files from the active FS
-     server.serveStatic("/", fs, "/")
-         .setDefaultFile("index.html")
-         .setCacheControl("max-age=600");
- 
-     // Custom handler for missing files
-     server.onNotFound([&fs](AsyncWebServerRequest* request) {
          if (request->host() == "captive.apple.com") {
              request->redirect("http://192.168.4.1");
              return;
@@ -69,6 +63,8 @@
  
          String path = request->url();
          if (path.endsWith("/")) path += "index.html";
+ 
+         Serial.printf("[Web] Looking for: %s in %s\n", path.c_str(), storage.isUsingSD() ? "SD" : "LittleFS");
  
          if (fs.exists(path)) {
              String contentType = getContentType(path);
@@ -89,21 +85,21 @@
          String jsonResponse = "{";
          bool first = true;
  
-         for(const auto& pair : pairs) {
-             if(!first) jsonResponse += ",";
+         for (const auto& pair : pairs) {
+             if (!first) jsonResponse += ",";
              first = false;
  
-             if(pair.first == "error" || pair.first == "status") {
+             if (pair.first == "error" || pair.first == "status") {
                  jsonResponse += "\"" + pair.first + "\":\"" + pair.second + "\"";
              } else {
-                 if(pair.second.length() == 0) {
+                 if (pair.second.length() == 0) {
                      jsonResponse += "\"" + pair.first + "\":null";
-                 } else if(pair.first == "uptime" || pair.first == "storage") {
+                 } else if (pair.first == "uptime" || pair.first == "storage") {
                      jsonResponse += "\"" + pair.first + "\":\"" + pair.second + "\"";
                  } else {
                      bool isNumeric = true;
-                     for(unsigned int i = 0; i < pair.second.length(); i++) {
-                         if(!isdigit(pair.second[i])) {
+                     for (unsigned int i = 0; i < pair.second.length(); i++) {
+                         if (!isdigit(pair.second[i])) {
                              isNumeric = false;
                              break;
                          }
@@ -126,8 +122,8 @@
  void setupHomepageHandler() {
      server.on("/api/homepage", HTTP_GET, [](AsyncWebServerRequest* request) {
          auto pairs = handleRequest("/homepage", {});
-         for(const auto& pair : pairs) {
-             if(pair.first == "json") {
+         for (const auto& pair : pairs) {
+             if (pair.first == "json") {
                  request->send(200, "application/json", pair.second);
                  return;
              }
@@ -154,11 +150,9 @@
  
      String hotspotSSID = (suffix.length() > 0) ? ("ecogram-" + suffix) : "ecogram";
  
-     // Start Access Point
      WiFi.mode(WIFI_AP_STA);
      WiFi.softAP(hotspotSSID.c_str(), "");
  
-     // Attempt STA Wi-Fi connection
      if (wifi_ssid.length() > 0) {
          Serial.print("Connecting to Wi-Fi: ");
          Serial.println(wifi_ssid);
@@ -178,7 +172,6 @@
          }
      }
  
-     // Register routes
      setupCaptivePortalRoutes();
      setupStaticFileHandler();
      setupStatusHandler();

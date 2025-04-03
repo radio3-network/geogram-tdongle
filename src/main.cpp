@@ -60,7 +60,6 @@ void setup() {
     digitalWrite(TFT_LEDA_PIN, 0);
 
     // Mount the SD card
-    //setupDisk();
     if (storage.begin()) {
         Serial.println("Storage ready.");
         storage.listDir("/", 2);  // Optional: show root directory
