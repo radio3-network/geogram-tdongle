@@ -71,28 +71,32 @@ void startBeacon(const char* beaconName, const char* namespaceId, const char* in
     // Create proper Eddystone UID frame
     std::string serviceData;
     serviceData += (char)0x00; // Eddystone UID frame type
-    serviceData += (char)0x00; // TX power (dummy value, adjust as needed)
-    
+    serviceData += (char)0xBA; // Calibrated TX power @ 0m (-70 dBm typical)
+
     // Convert hex namespace ID to bytes (10 bytes)
-    for(int i = 0; i < 20; i += 2) {
+    for (int i = 0; i < 20; i += 2) {
         std::string byteStr = std::string(namespaceId + i, 2);
         char byte = (char)strtoul(byteStr.c_str(), NULL, 16);
         serviceData += byte;
     }
     
     // Convert hex instance ID to bytes (6 bytes)
-    for(int i = 0; i < 12; i += 2) {
+    for (int i = 0; i < 12; i += 2) {
         std::string byteStr = std::string(instanceId + i, 2);
         char byte = (char)strtoul(byteStr.c_str(), NULL, 16);
         serviceData += byte;
     }
     
+    // Add 2 bytes Reserved For Future Use (RFU) — must be zero
+    serviceData += (char)0x00;
+    serviceData += (char)0x00;
+
     // Configure advertisement data
     advData = BLEAdvertisementData();
-    advData.setFlags(0x06); // BR/EDR not supported
+    advData.setFlags(0x06); // General discoverable, no BR/EDR
     advData.setServiceData(BLEUUID((uint16_t)0xFEAA), serviceData);
     
-    // Configure scan response data (optional)
+    // Configure scan response data
     scanResponseData = BLEAdvertisementData();
     scanResponseData.setName(beaconName);
     
@@ -108,6 +112,7 @@ void startBeacon(const char* beaconName, const char* namespaceId, const char* in
     
     Serial.println("Eddystone Beacon started successfully");
 }
+
 
 
 void restartBeacon() {
