@@ -15,10 +15,8 @@
 #include "wifi/time_get.h"
 #include "drive/storage.h"
 
-
 extern void startWebPortal();
 StorageManager storage;
-
 
 OneButton button(BTN_PIN, true);
 CRGB leds;
@@ -29,7 +27,8 @@ const unsigned long restartInterval = 60000;
 
 void nextPosition() {}
 
-void blinkLED() {
+void blinkLED()
+{
     leds = CRGB::White;
     FastLED.setBrightness(64);
     FastLED.show();
@@ -38,7 +37,8 @@ void blinkLED() {
     FastLED.show();
 }
 
-void setup() {
+void setup()
+{
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
     esp_sleep_enable_timer_wakeup(0);
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
@@ -48,7 +48,6 @@ void setup() {
 
     Serial.begin(115200);
     EEPROM.begin(1);
-
 
     initDisplay();
 
@@ -60,13 +59,15 @@ void setup() {
     digitalWrite(TFT_LEDA_PIN, 0);
 
     // Mount the SD card
-    if (storage.begin()) {
+    if (storage.begin())
+    {
         Serial.println("Storage ready.");
-        storage.listDir("/", 2);  // Optional: show root directory
-      } else {
+        storage.listDir("/", 2); // Optional: show root directory
+    }
+    else
+    {
         Serial.println("Storage initialization failed.");
-      }
-
+    }
 
     startWebPortal();
 
@@ -76,10 +77,20 @@ void setup() {
     prefs.end();
 
     String id = suffix;
-    String beaconName = "ecogram-" + suffix;
+    String beaconName = //"ecogram-" + 
+        suffix;
+    /*if(suffix == "ecogram")
+    {
+        id = "ecogram";
+        beaconName = "ecogram";
+    }*/
     String msg = "";
 
-    startBeacon(beaconName.c_str(), id.c_str(), 0x1234, msg.c_str());
+    // Generate proper namespace and instance IDs from your suffix
+    String namespaceId = "0000000000"; // 10-byte namespace (adjust as needed)
+    String instanceId = "000001";      // 6-byte instance (adjust as needed)
+
+    startBeacon(beaconName.c_str(), namespaceId.c_str(), instanceId.c_str());
 
     initTime();
 
@@ -89,13 +100,15 @@ void setup() {
     generateInspiration();
 }
 
-void loop() {
+void loop()
+{
     button.tick();
     updateDisplay();
-    updateTime(); 
+    updateTime();
     delay(5);
 
-    if (millis() - lastRestart > restartInterval) {
+    if (millis() - lastRestart > restartInterval)
+    {
         restartBeacon();
         lastRestart = millis();
     }

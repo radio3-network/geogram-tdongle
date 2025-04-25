@@ -13,6 +13,7 @@ extern TFT_eSPI screen;
 // Persistent advertising object
 static BLEAdvertising* adv = nullptr;
 static BLEAdvertisementData advData;
+static BLEAdvertisementData scanResponseData;
 
 void scanNearbyEddystoneUIDs() {
     BLEScan* scanner = BLEDevice::getScan();
@@ -63,31 +64,51 @@ void scanNearbyEddystoneUIDs() {
     scanner->clearResults();
 }
 
-void startBeacon(const char* beaconName, const char* deviceId, uint16_t manufacturerId, const char* payload) {
+void startBeacon(const char* beaconName, const char* namespaceId, const char* instanceId) {
     BLEDevice::init(beaconName);
-    BLEServer* pServer = BLEDevice::createServer();
     adv = BLEDevice::getAdvertising();
-
-    advData = BLEAdvertisementData(); // Reset
-    advData.setFlags(0x06); // General Discoverable, BR/EDR Not Supported
-
-    std::string mfgData;
-    mfgData += (char)(manufacturerId & 0xFF);
-    mfgData += (char)((manufacturerId >> 8) & 0xFF);
-    if (deviceId) {
-        mfgData += "[";
-        mfgData += deviceId;
-        mfgData += "] ";
+    
+    // Create proper Eddystone UID frame
+    std::string serviceData;
+    serviceData += (char)0x00; // Eddystone UID frame type
+    serviceData += (char)0x00; // TX power (dummy value, adjust as needed)
+    
+    // Convert hex namespace ID to bytes (10 bytes)
+    for(int i = 0; i < 20; i += 2) {
+        std::string byteStr = std::string(namespaceId + i, 2);
+        char byte = (char)strtoul(byteStr.c_str(), NULL, 16);
+        serviceData += byte;
     }
-    mfgData += payload;
-
-    advData.addData(std::string("\xFF") + mfgData);
-
+    
+    // Convert hex instance ID to bytes (6 bytes)
+    for(int i = 0; i < 12; i += 2) {
+        std::string byteStr = std::string(instanceId + i, 2);
+        char byte = (char)strtoul(byteStr.c_str(), NULL, 16);
+        serviceData += byte;
+    }
+    
+    // Configure advertisement data
+    advData = BLEAdvertisementData();
+    advData.setFlags(0x06); // BR/EDR not supported
+    advData.setServiceData(BLEUUID((uint16_t)0xFEAA), serviceData);
+    
+    // Configure scan response data (optional)
+    scanResponseData = BLEAdvertisementData();
+    scanResponseData.setName(beaconName);
+    
+    // Set advertising data
     adv->setAdvertisementData(advData);
+    adv->setScanResponseData(scanResponseData);
+    
+    // Add service UUID to advertising
+    adv->addServiceUUID(BLEUUID((uint16_t)0xFEAA));
+    
+    // Start advertising
     adv->start();
-
-    Serial.println("Beacon started.");
+    
+    Serial.println("Eddystone Beacon started successfully");
 }
+
 
 void restartBeacon() {
     if (adv) {
